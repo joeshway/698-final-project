@@ -327,7 +327,133 @@ ansible
          |  main.yml
 ```
 ***
-##roles
-###docker
-####handlers
-#####main.yml
+## roles
+### docker
+#### handlers
+##### main.yml
+```
+---
+- name: apt-get update
+  apt:
+    update_cache: yes
+    cache_valid_time: 1800
+```
+***
+## roles
+### docker
+#### tasks
+##### install.yml
+```
+---
+# Install the docker service
+- name: install docker dependencies
+  apt:
+    pkg: '{{ item }}'
+    update_cache: yes
+    cache_valid_time: 1800
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+
+# Add docker's GPG key
+- name: Setup docker repository key
+  apt_key:
+    id: 0EBFCD88
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  notify: apt-get update
+
+# This command runs on the server to determine what version of ubuntu is running
+# The command's output to `lsb_release -c -s` is saved in `release` and
+# available for the next step.
+- name: Get release
+  command: lsb_release -c -s
+  register: release
+
+# Here we add docker's repository to allow the system to do an apt-get install of
+# official docker packages.
+# http://docs.ansible.com/ansible/apt_repository_module.html
+- name: Add docker repo
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ release.stdout }} stable
+    state: present
+    filename: docker
+  notify: apt-get update
+
+# Install the docker service.  Fix the name of the package.
+# http://docs.ansible.com/ansible/apt_module.html
+- name: Install the latest version of docker community edition
+  apt:
+    pkg: docker-ce
+    update_cache: yes
+    cache_valid_time: 1800
+```
+##### main.yml
+```
+---
+
+- include: install.yml
+- include: user.yml
+- include: service.yml
+```
+##### service.yml
+```
+---
+# This should ensure that the docker service is running.
+# See the following for usage hints:
+# http://docs.ansible.com/ansible/service_module.html
+- name: Ensure docker service is started
+  service:
+    name: docker.service
+    state: started
+```
+##### user.yml
+```
+---
+- name: Adding user to group docker
+  user:
+    name: "{{ student_name }}"
+    group: docker
+    append: yes
+```
+***
+## roles
+### server
+#### tasks
+##### main.yml
+```
+---
+# The following python package is required for ansible to interact with
+# the docker service to manage docker containers.
+- name: Ensure python docker-py package is installed
+  pip:
+    name: docker-py
+
+- name: Start/Restart the container
+  docker_container:
+    name: "server-{{ server_environment }}"
+    image: "{{ server_image }}:{{ server_image_version }}"
+    command: "{{ server_command }}"
+    state: started
+    ports:
+     - "{{ server_host_port }}:{{ server_container_port }}"
+
+- name: verify that webserver is running
+  uri:
+    url: http://{{ aws_ip }}:{{ server_host_port }}
+    method: GET
+```
+***
+## roles
+### server
+#### vars
+##### main.yml
+```
+---
+server_image: <docker User Name>/698-final-project
+server_command: python3 /src/flask_server.py
+aws_ip: <AWS server IP>
+```
+***
