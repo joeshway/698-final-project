@@ -1,0 +1,20 @@
+---
+# The following python package is required for ansible to interact with
+# the docker service to manage docker containers.
+- name: Ensure python docker-py package is installed
+  pip:
+    name: docker-py
+
+- name: Start/Restart the container
+  docker_container:
+    name: "server-{{ server_environment }}"
+    image: "{{ server_image }}:{{ server_image_version }}"
+    command: "{{ server_command }}"
+    state: started
+    ports:
+     - "{{ server_host_port }}:{{ server_container_port }}"
+
+- name: verify that webserver is running
+  uri:
+    url: http://{{ aws_ip }}:{{ server_host_port }}
+    method: GET
