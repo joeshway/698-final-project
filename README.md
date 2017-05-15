@@ -1,5 +1,7 @@
 # PreSetup
 ## GitHub
+GitHub is the place that will store all of your hard work and allow you to access it, download it, and change it from anywhere. It also keeps proivious versions if you realy mess up, so you can revert back.
+
 ### Interwebs setup
 1. Go to [github](https://www.github.com) and either sign in or create an account
 2. Over toward the right of the page, click on **New Repository**
@@ -27,6 +29,8 @@
 This will setup an empty github repo to use
 ***
 ## Docker Cloud
+Docker Cloud is the testing plateform. It will check to see if your repo passes tests that you define and it is where we will be pulling versions from on the web server
+
 1. Go to [Docker Cloud](https://cloud.docker.com) and either sign in or crete an account
 2. If you have already connected Docker cloud to Git Hub go to step 7
 3. Click on your user name in the top right and select **Cloud Settings from the dropdown
@@ -47,4 +51,67 @@ This will setup an empty github repo to use
   ![What it should look like... there should be an image here](markdown-stuff/docker-settings.png)
 13. Lastly hit the **Create** button at the bottom
 
+***
+
+# Setting up Docker Files in local repo
+Docker needs a few files in your local repo to function. below will show each file you need, how to setup them up, and what they do
+### Dockerfile
+The Dockerfile is the instructions that run to setup the docker container
+1. In the root of your local repo type `sudo nano Dockerfile`
+2. In the file add the following code
+```bash
+FROM ubuntu:xenial
+
+COPY . /src
+WORKDIR /src
+```
+
+### docker-compose.test.yml
+This file points to your test file that will pass or fail your build
+1. In the root of your local repo type `sudo nano docker-compose.test.yml`
+2. In the file add the following code
+```python
+sut:
+  build: .
+  command: bash ./run-tests.sh
+```
+
+### run-tests.sh
+This file points to the python file with your tests in it
+1. In the root of your local repo type `sudo nano run-test.sh`
+2. In the file add the following code
+```bash
+#!/bin/bash
+
+echo "Running Flask Unit Tests"
+
+python3 project_test.py
+```
+
+###project_test.py
+This file has your tests for docker in it The first time docker runs this it should fail, if it passes double check all of the code is correct
+1. In the root of your local repo type `sudo nano project_test.py`
+2. In the file add the following code
+```python
+import unittest
+
+import flask_server
+
+class FlaskrTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.app = flask_server.app.test_client()
+
+    def tearDown(self):
+        pass
+
+    def test_home_page(self):
+        # Render the / path of the website
+        rv = self.app.get('/')
+        # Chech that the page contians the desired phrase
+        assert b'Hello World' in rv.data
+
+if __name__ == '__main__':
+    unittest.main()
+```
 
