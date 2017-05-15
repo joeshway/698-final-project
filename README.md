@@ -187,16 +187,56 @@ RUN pip3 install Flask
 ```
 If you notice we are installing Flask with pip3. This is because Flask is a python app
 ***
-Go ahead and push this up to git hub. make a pull request, and go to docker cloud. 
+Go ahead and push this up to GitHub. make a pull request, and go to Docker Cloud. 
 
 If everything was done correctly your test should pass, or succeed as docker puts it
 
-Now assuming your test passed, you can now merge into master. 
+Assuming your test passed, you can now merge into master. 
 
-#Tagging
+# Tagging
 At this point we should make a tag. this is a way in git to add a marker to a place in the timeline that is easly found. This also integrates with Docker Cloud, we will talk about that in a bit.
 
 1. To do this type `git checkout master` at the root of your local repo.
 2. Now type `git tag 0.0.1` the first number is a major release, the second is minor release, and the third is bugcheck or small change that does not break anything
 3. type `git push --tags`
+4. now in Docker Cloud you should see a new test running on that tag number
+5. When you make a new tag do the same as above, but increment what ever number fits the changes you made.
+
+# Setting up Flask the better way
+Now that the test has passed, lets change some things.
+
+Since flask is a web server, we should make it return HTML files, instead of just plain text.
+1. Make a folder in the rood of the repo called templates. `mkdir templates`
+2. Now cd into that folder
+3. Lets make a basic HTML home page that will still pass our test
+4. Type `sudo nano index.html`
+5. Now add the code below
+```html
+<html>
+  <head>
+  </head>
+  <body>
+    <h1>Hello World</h1>
+  </body>
+</html>
+```
+6. Now that we have an HTML file we need to point flask to it.
+7. edit the flask_server.py file
+8. On the first line after Flask add a comma then a space, and type `render_template`
+9. now where you have `'Hello World'` remove that including the quotes and add `render_template('index.html')`
+
+The file should look like this
+```python
+
+from flask import Flask, render_template
+app = Flask(__name__)
+
+@app.route('/')
+def mainRoute():
+    return render_template('index.html')
+
+if __name__ == '__main__':
+    app.run(debug=True,host='0.0.0.0')
+``` 
+10. Flask will now load that HTML file
 
