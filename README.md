@@ -26,5 +26,5 @@ This will setup an empty github repo to use
   - **Docker Tag:** release-{sourceref}
   - **Dockerfile location:** Dockerfile
   - **Build Caching:** on
-  ![What it should look like... there should be an image here](https://github.com/joeshway/698-final-project/blob/markdown-stuff/docker-settings.png)
+  ![What it should look like... there should be an image here](markdown-stuff/docker-settings.png)
 13. Lastly hit the **Create** button at the bottom
