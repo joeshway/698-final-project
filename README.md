@@ -59,6 +59,7 @@ Docker Cloud is the testing plateform. It will check to see if your repo passes 
 
 # Setting up Docker Files in local repo
 Docker needs a few files in your local repo to function. below will show each file you need, how to setup them up, and what they do
+At this point I would recomend making a branch by typing `git checkout -b [branch-name]`
 ### Dockerfile
 The Dockerfile is the instructions that run to setup the docker container
 1. In the root of your local repo type `sudo nano Dockerfile`
@@ -119,8 +120,21 @@ if __name__ == '__main__':
     unittest.main()
 ```
 This will check if the home page has **hello world** somewhere on it.
+***
+### At this point we should get these new files up on git hub
+1. Type `git status` to see what files have been added, or changed.
+2. Type `git add -A`. At this point it is fine to all all of the files, however in the future you can add specific files by typing `git add [file-name]`
+3. Type `git commit -m "A super informative commit message". When committing try to make the message informative that way if someone else were to look at them, they would know what was changed.
+4. Type `git push orgin [branch-name]`. This is what ever you used when making the branch.
+5. Open a browser and go to [github.com](https:\\github.com)
+6. Go to your repo and create a pull request into master
+7. If Docker is setup correctly you should now see tests pending near the merge button
+8. Open a new tab and go to [cloud.docker.com](https://cloud.docker.com)
+9. Select repositories near the top, and select the one you made earlier.
+10. On the right you should see your build. If you select it, you will see the status along with a log of what is going on.
+11. **DO NOT** merge the pull request (not a huge deal if you did)
 
-# Adding the Dockerfile
+# Adding to the Dockerfile
 After this section the tests still won't pass, but it shouldn't fail as early...
 
 Since the Dockerfile is the instructions on how to setup the container we need to add some code to it so it sets up the server correctly
@@ -146,6 +160,7 @@ WORKDIR /src
 ```
 This will install most of the packages you need
 
+If you would like you can add, commit, and push to github and create a pull request again to see what changes
 
 # Flask
 Flask is the backend to the web server. it is written in python. For some more info on flask checkout [http://flask.pocoo.org/](http://flask.pocoo.org/)
@@ -171,3 +186,17 @@ if __name__ == '__main__':
 RUN pip3 install Flask
 ```
 If you notice we are installing Flask with pip3. This is because Flask is a python app
+***
+Go ahead and push this up to git hub. make a pull request, and go to docker cloud. 
+
+If everything was done correctly your test should pass, or succeed as docker puts it
+
+Now assuming your test passed, you can now merge into master. 
+
+#Tagging
+At this point we should make a tag. this is a way in git to add a marker to a place in the timeline that is easly found. This also integrates with Docker Cloud, we will talk about that in a bit.
+
+1. To do this type `git checkout master` at the root of your local repo.
+2. Now type `git tag 0.0.1` the first number is a major release, the second is minor release, and the third is bugcheck or small change that does not break anything
+3. type `git push --tags`
+
