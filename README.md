@@ -249,7 +249,7 @@ Before we get to AWS, lets setup ansible
 
 1. in the root of the project create a folder called **ansible** `mkdir ansible`
 2. cd into ansible and make another folder called roles, but do not cd into it
-###We need to create 4 files in the ansible folder
+### We need to create 4 files in the ansible folder
 **ansible.cfg**
 1. type `sudo nano ansible.cfg`
 2. Add the line `[localhost]` to it, and that is it
