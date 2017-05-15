@@ -49,7 +49,11 @@ Docker Cloud is the testing plateform. It will check to see if your repo passes 
   - **Dockerfile location:** Dockerfile
   - **Build Caching:** on
   ![What it should look like... there should be an image here](markdown-stuff/docker-settings.png)
-13. Lastly hit the **Create** button at the bottom
+13. Now hit the **Create** button at the bottom
+14. Lastly go to **builds** for the repo, it should be near the top center of the page.
+15. Click **Configure Automated Builds**
+16. Set **AUTOTEST** to **Internal Pull Requests**
+17. Hit Save down at the bottom
 
 ***
 
@@ -88,7 +92,7 @@ echo "Running Flask Unit Tests"
 python3 project_test.py
 ```
 
-###project_test.py
+### project_test.py
 This file has your tests for docker in it The first time docker runs this it should fail, if it passes double check all of the code is correct
 1. In the root of your local repo type `sudo nano project_test.py`
 2. In the file add the following code
@@ -114,4 +118,56 @@ class FlaskrTestCase(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 ```
+This will check if the home page has **hello world** somewhere on it.
 
+# Adding the Dockerfile
+After this section the tests still won't pass, but it shouldn't fail as early...
+
+Since the Dockerfile is the instructions on how to setup the container we need to add some code to it so it sets up the server correctly
+The first time you run the test it will take a bit longer, however docker caches commands, so the second time should be faster.
+One catch is that if one line in the Dockerfile changes all lines after it will not use the cached version.
+
+1. in the root of the repo type `sudo nano Dockerfile`
+2. directly after the first line add this code
+```
+RUN apt-get update -y
+RUN apt-get install -y python3 python3-pip python3-dev build-essential
+```
+The entire file should look like this
+```
+FROM ubuntu:xenial
+
+RUN apt-get update -y
+RUN apt-get install -y python3 python3-pip python3-dev build-essential
+
+COPY . /src
+WORKDIR /src
+
+```
+This will install most of the packages you need
+
+
+# Flask
+Flask is the backend to the web server. it is written in python. For some more info on flask checkout [http://flask.pocoo.org/](http://flask.pocoo.org/)
+For now we will set this up to pass our test that we setup
+
+1. in the root of the repo type `sudo nano flask_server.py`
+2. add this code to the file
+```python
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def mainRoute():
+    return 'Hello World'
+
+if __name__ == '__main__':
+    app.run(debug=True,host='0.0.0.0')
+```
+3. You are also going to have to add another line to you Dockerfile
+4. You should know how to edit files at this point... edit the Docker file and add the line below smoewhere above `COPY . /src` and below `RUN apt-get install...`
+
+```
+RUN pip3 install Flask
+```
+If you notice we are installing Flask with pip3. This is because Flask is a python app
