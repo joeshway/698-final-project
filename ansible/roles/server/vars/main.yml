@@ -1,0 +1,4 @@
+---
+server_image: joeshway/698-final-project
+server_command: python3 /src/flask_server.py
+aws_ip: 52.53.149.114

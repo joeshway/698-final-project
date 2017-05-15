@@ -1,0 +1,11 @@
+---
+- name: Deploy the production version 
+  hosts: localhost
+  become: true
+  vars:
+    server_environment: production
+    server_image_version: release-0.0.2
+    server_host_port: 8080
+    server_container_port: 5000
+  roles:
+    - server

@@ -240,3 +240,94 @@ if __name__ == '__main__':
 ``` 
 10. Flask will now load that HTML file
 
+#Ansible
+Ansible is a way of auto setting up a server using yml files.
+
+We will pe using it to deploy a staging and production server on an AWS instance.
+
+Before we get to AWS, lets setup ansible
+
+1. in the root of the project create a folder called **ansible** `mkdir ansible`
+2. cd into ansible and make another folder called roles, but do not cd into it
+###We need to create 4 files in the ansible folder
+**ansible.cfg**
+1. type `sudo nano ansible.cfg`
+2. Add the line `[localhost]` to it, and that is it
+
+**configure-host.yml**
+This will install and run the community version of docker
+1. type `sudo nano configure-host.yml`
+2. add this code to the file
+```
+---
+- name: Install the community edition of docker
+  hosts: localhost
+  become: true
+  roles:
+    - docker
+```
+**deploy-website-production.yml**
+This will start the production server. The **server_host_port** should be the open port on the AWS instance for the production server and **server_image_version** is the version of the site on docker cloud you want to use
+1. type `sudo nano deploy-website-production.yml`
+2. add this code to the file
+```
+---
+- name: Deploy the production version
+  hosts: localhost
+  become: true
+  vars:
+    server_environment: production
+    server_image_version: release-0.0.2
+    server_host_port: 8080
+    server_container_port: 5000
+  roles:
+    - server
+```
+**deploy-website-staging.yml**
+This will start the staging server. The **server_host_port** should be the open port on the AWS instance for the staging server and **server_image_version** is the version of the site on docker cloud that you want to use
+1. type `sudo nano deploy-website-staging.yml`
+2. add this code to the file
+```
+---
+- name: Deploy the staging version
+  hosts: localhost
+  become: true
+  vars:
+    server_environment: production
+    server_image_version: release-0.0.2
+    server_host_port: 8081
+    server_container_port: 5000
+  roles:
+    - server
+```
+***
+here is a tree to refer back to on the file structure of the ansible folder
+```
+ansible
+|  ansible.cfg
+|  configure-hgost.yml 
+|  deploy-website-production.yml
+|  deploy-website-staging.yml
+|--roles
+   |--docker
+   |  |--handlers
+   |  |  |  main.yml
+   |  |
+   |  |--tasks
+   |     |  install.yml
+   |     |  main.yml
+   |     |  service.yml
+   |     |  user.yml
+   |
+   |--server
+      |--tasks
+      |  |  main.yml
+      |
+      |--vars
+         |  main.yml
+```
+***
+##roles
+###docker
+####handlers
+#####main.yml
