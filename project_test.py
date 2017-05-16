@@ -14,7 +14,12 @@ class FlaskrTestCase(unittest.TestCase):
         # Render the / path of the website
         rv = self.app.get('/')
         # Chech that the page contians the desired phrase
-        assert b'Hello World' in rv.data
+        assert b'Cat' in rv.data
+
+    def test_my_topic(self):
+        rv = self.app.get('/cats')  
+        # Replace UNH698 Website with the text you expect to see on you topi$
+        assert b'Not sure what to make a website of so here is a picture of a cat' in rv.data 
 
 if __name__ == '__main__':
     unittest.main()
