@@ -8,6 +8,9 @@ setup_metrics(app)
 def mainRoute():
     return render_template('index.html')
 
+def cats():
+    return render_template('cats.html')
+
 if __name__ == '__main__':
     app.run(debug=True,host='0.0.0.0')
 
