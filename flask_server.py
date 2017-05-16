@@ -12,6 +12,10 @@ def mainRoute():
 def cats():
     return render_template('cats.html')
 
+@app.route('/dogs')
+def dogs():
+    return render_template('dogs.html')
+
 if __name__ == '__main__':
     app.run(debug=True,host='0.0.0.0')
 
