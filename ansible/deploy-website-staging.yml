@@ -4,7 +4,7 @@
   become: true
   vars:
     server_environment: staging
-    server_image_version: release-0.0.2
+    server_image_version: release-0.1.2
     server_host_port: 8081
     server_container_port: 5000
   roles:
