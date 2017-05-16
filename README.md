@@ -164,6 +164,9 @@ If you would like you can add, commit, and push to github and create a pull requ
 
 # Flask
 Flask is the backend to the web server. it is written in python. For some more info on flask checkout [http://flask.pocoo.org/](http://flask.pocoo.org/)
+
+Flask is useful because it give a relativly easy to configure backend, and allows users to better manage content, and content loading. It also gives a place to run web server level scripts for anilytics, data proccessing, are anthing else that you dont want to run on a client machine.
+
 For now we will set this up to pass our test that we setup
 
 1. in the root of the repo type `sudo nano flask_server.py`
@@ -243,9 +246,11 @@ if __name__ == '__main__':
 #Ansible
 Ansible is a way of auto setting up a server using yml files.
 
-We will pe using it to deploy a staging and production server on an AWS instance.
+This will allow you to start a production and staging instance on a mostly clean server with 5 commands in terminal
 
-Before we get to AWS, lets setup ansible
+We will be using it to deploy a staging and production server on an AWS instance.
+
+Before we get to AWS, lets setup ansible and do a few other things
 
 1. in the root of the project create a folder called **ansible** `mkdir ansible`
 2. cd into ansible and make another folder called roles, but do not cd into it
@@ -293,7 +298,7 @@ This will start the staging server. The **server_host_port** should be the open 
   hosts: localhost
   become: true
   vars:
-    server_environment: production
+    server_environment: staging
     server_image_version: release-0.0.2
     server_host_port: 8081
     server_container_port: 5000
@@ -457,3 +462,109 @@ server_command: python3 /src/flask_server.py
 aws_ip: <AWS server IP>
 ```
 ***
+
+# Prometheus
+Prometheus is a metrics gathering and monitoring tool. You can learn more about it at [prometheus.io](https://prometheus.io)
+
+This is useful to allow you to see or get notified of a problem before your client or their customers do.
+
+With this we will be monitoring CPU, and Memory load, along with number of page loads and load time
+
+### Start by editing the **Dockerfile**
+1. `sudo nano Dockerfile`
+2. add `pip3 install prometheus_client` just after the Flask install line
+
+### Then edit **flask_server.py**
+1. `sudo nano Dockerfile`
+2. Add this line to the top of the file just under the Flask import:
+```python
+from prometheus_metrics import setup_metrics
+```
+3. then add this line after `app = Flask(__name__)`
+```python
+setup_metrics(apps)
+```
+
+### Lastly we need to make a python file for prometheus
+1. `sudo nano prometheus_metrics.py` This file must be in the same directory as **flask_server.py**
+2. Add the following code:
+```python
+import time
+from flask import request
+from flask import Response
+from prometheus_client import Summary, Counter, Histogram
+from prometheus_client.exposition import generate_latest
+from prometheus_client.core import  CollectorRegistry
+from prometheus_client.multiprocess import MultiProcessCollector
+
+_INF = float("inf")
+# Create a metric to track time spent and requests made.
+REQUEST_TIME = Histogram(
+    'app:request_processing_seconds', 
+    'Time spent processing request',
+    ['method', 'endpoint'],
+    buckets=tuple([0.0001, 0.001, .01, .1, 1, _INF])
+)
+REQUEST_COUNTER = Counter(
+    'app:request_count', 
+    'Total count of requests', 
+    ['method', 'endpoint', 'http_status']
+)
+
+
+def setup_metrics(app):
+    @app.before_request
+    def before_request():
+        request.start_time = time.time()
+
+    @app.after_request
+    def increment_request_count(response):
+        request_latency = time.time() - request.start_time
+        REQUEST_TIME.labels(request.method, request.path
+            ).observe(request_latency)
+
+        REQUEST_COUNTER.labels(request.method, request.path,
+                response.status_code).inc()
+        return response
+
+    @app.route('/metrics')
+    def metrics():
+        return Response(generate_latest(), mimetype="text/plain")
+```
+#Amazon Web Services (AWS)
+Here is the actual server that will be running your containers.
+
+Prereqs for this point are an AWS server with **git** and **ansible** installed
+
+First connect to your server through the terminal with this command:
+```bash
+ssh -i <path/to/keyfile>.key <userName>@<AWS-Server-IP>
+```
+Assuming that everyhting has been done correctly to this point, there are only 5 commands needed to get your production and staging containers running and accessible from the outside.
+
+1. Run this where you would like the server files stored: `git clone https://github.com/<GitHub-UserName>/698-final-project.git`
+2. `cd 698-final-project/ansible` Gets us to the ansible file
+3. `ansible-playbook configure-host.yml -v --extra-vars "student_name=<username-for-aws-server>"`
+4. `ansible-playbook deploy-website-production.yml -v`
+5. `ansible-playbook deploy-website-staging.yml -v` 
+
+Web Adresses
+* production: http://<aws-server-ip>:8080
+* staging: http://<aws-server-ip>:8081
+
+# How to use Production and Staging Correctly
+
+Remember back to when we setup deploy-website-production.yml and deploy-website-staging.yml
+
+If you look at the files the server_image_version was set to the same one: **release-0.0.2**
+
+What should be done is once you have a stable release you can change the production **server_image_version** to **_release-#.#.#_**. Basically you use the tags generated by Docker cloud to say what you want the server to load.
+
+Staging is used to test, I would not recomend using the **:latest** tag Docker Cloud makes, because you can run into caching issues. 
+
+When you want to test a new release, Tag it in git, and use that tag to test it.
+
+# Restarting containers
+When you create a new relase for either staging or production you will have to restart the docker container.
+
+1. While on the server type `sudo docker ps`
